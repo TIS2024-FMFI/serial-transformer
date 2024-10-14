@@ -1,0 +1,157 @@
+
+									-1-
+
+	PROTOKOL  RS485 AGO
+
+
+
+ÚÄÄÄÄÄÄÄÄÄ¿  ÚÄÄÄÄÄÄÄÄ¿ ÉÍÍÍÍÍÍÍÍ» ÚÄÄÄÄÄÄÄÄ¿ ÚÄÄÄÄÄÄÄÄ¿       ÚÄÄÄÄÄÄÄÄ¿
+³   PC    ³  ³ TERMI- ³ º  CPU   º ³  I/O   ³ ³  I/O   ³       ³  I/O   ³
+³ PROCOMM ³  ³  NAL   ³ º RS-485 º ³ MODUL1 ³ ³ MODUL2 ³  ...  ³ MODULN ³
+ÀÄÂÄÂÄÂÄÂÄÙ  ÀÂÄÂÄÄÂÄÂÙ ÈÑÍÑÍÍÑÍÑ¼ ÀÂÄÂÄÄÂÄÂÙ ÀÂÄÂÄÄÂÄÂÙ       ÀÂÄÂÄÄÂÄÂÙ
+ ÚÁ¿³ ³ À -- ÚÁ¿³  ³ ÀÄÄÄÙ ³  ³ ÀÄÄÄÙ ³  ³ ÀÄÄÄÙ ³  ³ ÀÄÄ --- ÄÄÙ ³  ³ÚÁ¿
+ ³R³³ ÀÄÄ -- ³R³³  ÀÄÄÄÄÄÄÄÙ  ÀÄÄÄÄÄÄÄÙ  ÀÄÄÄÄÄÄÄÙ  ÀÄÄÄÄ --- ÄÄÄÄÙ  ³³R³
+ ÀÂÙ³        ÀÂÙ³                                                    ³ÀÂÙ
+  ÀÄÙ         ÀÄÙ                                                    ÀÄÙ
+ 
+ Komunikacia je riadena iba cez CPU ("master"). Vsetky ostatne moduly, vci-
+ tane terminalu (aj PC) su v pozicii "slave". CPU vysiela (datove) telegramy
+ a podsystemy na ne vzdy odpovedaju. Ak podsystem nema data, odpoveda tele-
+ gramom s prazdnou datovou oblastou (dlzka dat = 0). Vsetky moduly su defi-
+ novane svojou adresou a adresou prislusneho I/O kanala. Hodnoty vstupnych
+ modulov sa zvlast neziadaju, predpoklada sa, ze modul v ramci odpovede
+ uvedie stavy vsetkych IN vstupov. Data pre vystupne kanaly su dodefinovane
+ adresou kanalu a dlzkou prislusneho datoveho retazca.
+ 
+
+ Format telegramu z CPU do podsystemu :
+ ÚÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄ¿
+ ³START ³ADRESA³DLZKA³  DATOVE ³ CRC ³ END  ³
+ ³ZNAK  ³MODULU³ DAT ³  POLE   ³ ADD ³ ZNAK ³
+ ÀÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÙ
+    ³      ³      ³      ³        ³     ÀÄÄÄÄ> ukoncovaci znak <CR> (0Dh)
+    ³      ³      ³      ³        ÀÄÄÄÄ> 2 ASCII znaky kontrolnej sumy ako
+    ³      ³      ³      ³               sucet vsetkych vysielanych znakov
+    ³      ³      ³      ³               od START ZNAK-u (vcitane) po CRC
+    ³      ³      ³      ³               (modulo 256).
+    ³      ³      ³      ÀÄÄÄÄ> max. 22 ASCII znakov. V datovom poli moze
+    ³      ³      ³             byt 0, 1 ... 5 (11) datovych informacii. V
+    ³      ³      ³             kazdej datovej informacii su 2 ASCII znaky
+    ³      ³      ³             riadiaci kod (obsahujuci adresu kanala) a
+    ³      ³      ³             nasleduje max. 20 ASCII znakov dat.
+    ³      ³      ³             ÚÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿ - - - - -
+    ³      ³      ³             ³  RIADIACI  ³  VLASTNE DATA   ³  DALSI
+    ³      ³      ³             ³ZNAK(1B/2ZN)³(1-10B / 0-20 ZN)³ RIAD.ZNAK
+    ³      ³      ³             ÀÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ - - - - -
+    ³      ³      ³             Riadiaci znak ma strukturu :
+    ³      ³      ³             ÚÄÄÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄÄ¿
+    ³      ³      ³             ³bit 7.  6.   5. ³ 4.   3.   2.   1.   0. ³
+    ³      ³      ³             ³ ADRESA  KANALA ³POCET BYTOV / ZNAKOV  ##³
+    ³      ³      ³             ÀÄÄÄÄÄÄÁÄÄÄÄÁÄÄÄÄÁÄÄÄÄÁÄÄÄÄÁÄÄÄÄÁÄÄÄÄÁÄÄÄÄÙ
+    ³      ³      ³             uP modulu ma adresu kanalu 7. Ak je pocet
+    ³      ³      ³             datovych ASCII znakov rovny 0, nie su pre-
+    ³      ³      ³             nasane ziadne data. 
+    ³      ³      ÀÄÄÄÄ> 2 ASCII znaky dlzky dat su uvadzane kvoli viacna-
+    ³      ³             sobnym datovym retazcom. Predstavuju pocet ASCII
+    ³      ³             znakov v datovom poli od znakov dlzky dat (tie tam
+    ³      ³             nepatria) po CRC.
+    ³      ÀÄÄÄÄ> adresa modulu je definovana 2 ASCII znakmi. Adresa CPU je
+    ³             "00", adresa terminalu je "FF".
+    ÀÄÄÄÄ> startovacim znakom je znak "U" (55h)
+ 
+ 									-2-
+
+ Format telegramu (odpovede) z podsystemu do CPU :
+ ÚÄÄÄÄÄÄÂÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÂÄÄÄÄÄÄ¿
+ ³START ³ADRESA³DLZKA³  DATOVE ³ CRC ³ END  ³
+ ³ZNAK  ³MODULU³ DAT ³  POLE   ³ ADD ³ ZNAK ³
+ ÀÄÄÄÄÄÄÁÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÙ
+    ³      ³      ³      ³        ³     ÀÄÄÄÄ> ukoncovaci znak <CR> (0Dh)
+    ³      ³      ³      ³        ÀÄÄÄÄ> 2 ASCII znaky kontrolnej sumy ako
+    ³      ³      ³      ³               sucet vsetkych vysielanych znakov
+    ³      ³      ³      ³               od START ZNAK-u (vcitane) po CRC
+    ³      ³      ³      ³               (modulo 256).
+    ³      ³      ³      ÀÄÄÄÄ> max. 22 ASCII znakov. V datovom poli moze
+    ³      ³      ³             byt 0, 1 ... 5 (11) datovych informacii. V
+    ³      ³      ³             kazdej datovej informacii su 2 ASCII znaky
+    ³      ³      ³             riadiaci kod (obsahujuci adresu kanala) a
+    ³      ³      ³             nasleduje max. 20 ASCII znakov dat.
+    ³      ³      ³             ÚÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿ - - - - -
+    ³      ³      ³             ³  RIADIACI  ³   VLASTNE DATA  ³  DALSI
+    ³      ³      ³             ³ZNAK(1B/2ZN)³(0-10B / 0-20 ZN)³ RIAD.ZNAK
+    ³      ³      ³             ÀÄÄÄÄÄÄÄÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ - - - - -
+    ³      ³      ³             Riadiaci znak ma strukturu :
+    ³      ³      ³             ÚÄÄÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄÄÂÄÄÄÄ¿
+    ³      ³      ³             ³bit 7.  6.   5. ³ 4.   3.   2.   1.   0. ³
+    ³      ³      ³             ³ ADRESA  KANALA ³ POCET BYTOV / ZNAKOV ##³
+    ³      ³      ³             ÀÄÄÄÄÄÄÁÄÄÄÄÁÄÄÄÄÁÄÄÄÄÁÄÄÄÄÁÄÄÄÄÁÄÄÄÄÁÄÄÄÄÙ
+    ³      ³      ³             uP modul ma adresu kanala 7. Ak je pocet
+    ³      ³      ³             datovych ASCII znakov rovny 0, nie su pre-
+    ³      ³      ³             nasane ziadne data. 
+    ³      ³      ÀÄÄÄÄ> 2 ASCII znaky dlzky dat (kvoli viacnasobnym datovym
+    ³      ³             datovym retazcom). Predstavuju pocet ASCII znakov v
+    ³      ³             datovom poli od znakov dlzky data po CRC.
+    ³      ÀÄÄÄÄ> uvadza sa vlastna adresa modulu (2 ASCII znaky).
+    ÀÄÄÄÄ> startovacim znakom je znak "Z" (5Ah)
+    
+Vlastna komunikacia prebieha takto :
+
+CPU : vysiela telegram na modul X ----->  
+                                  <----- modul X : odpoveda odovzdanim dat
+CPU : vysiela telegram na modul Y ----->  
+                                  <----- modul Y : odpoveda odovzdanim dat
+
+Ak CPU nedostane odpoved do definovaneho time-outu (1s), opakuje vyslatie
+telegramu - celkove 3 x. Potom prechadza na vysielanie telegramu pre dalsi
+modul. Takto cyklicky obieha vsetky moduly. V CPU sa predpoklada tabulka
+zaradenych modulov, aby sa neprechadzalo zbytocne cez neexistujuce adresy.
+
+Spravna odpoved z podriadeneho modulu sa berie ako ACK potvrdenie. NACK sa
+nevysiela, postacuje time-out. Vzhladom na obmedzeny rozsah prijimacich
+bufferov v podsystemoch (napr. 80C51, AT89C2051 bez externej RAM), nepred-
+poklada sa na ziadnom module viac ako 5-7 I/O kanalov. Preto nie je treba
+prenos dat viacerymi za sebou nasledujucimi telegramami.
+
+V podsysteme adresa kanala jenoznacne urcuje, co treba s datami spravit.
+
+Vsetky cisla, pocty, data predstavuju hexadecimalne cisla prevedene do dvoch
+ASCII znakov.
+
+									-3-
+
+	SPOLUPRACA S ALFANUMERICKYM TERMINALOM :
+
+Terminal je schopny prijat iba informaciu pre jeden riadok za cca 100 ms.
+Preto cely displej (napr. 4 x 20 znakov) moze byt zapisany iba postupne
+(na 4 vyslatia telegramu s casovym osdtupom 100 ms). Adresa kanalu tu pred-
+stavuje adresu riadku (0,1,2,3). Vysvietenie LED diod, resp. ovladanie pie-
+zosirenky je riadene bitovo cez adresu kanala 4. Vyznam bitov :
+ 0. - LED 0, 1. - LED 1, 2. - LED 2, 3. - LED 3, 4. - PIEZO
+Informacia o stlacenych klavesach je posielana v odpovedi, cislo kanalu
+pre klavesnicu je 6.
+
+Priklad telegramu :
+           (s oddelenymi jednotlivymi castami)
+CPU      : <U><FF><16><14><Text bude v 1.riadku><A7><0D>
+Terminal : <Z><FF><04><C2><12><22><0D>
+                        ³   ÀÄÄÄÄ> 2 kody stlacenych tlacitok : 1 a 2
+                        ÀÄÄÄÄ> 6. kanal (klavesnica), 2 stlacene tlacitka
+
+resp. skutocny telegram v ASCII znakoch :
+CPU      : UFF1614Text bude v 1.riadkuA70D
+Terminal : ZFF04C212220D
+
+alebo v prepise do HEX :
+CPU      : 55 46 46 31 36 31 34 54 65 78 74 20 62 75 64 65 20 76 20 31 2E 
+           72 69 61 64 6B 75 41 37 0D
+Terminal : 5A 46 46 30 34 43 32 31 32 32 32 0D
+
+
+;--------------------------------------
+##
+Ak sa precuje s terminalom (adresa FFh), prenasa sa pocet znakov a ASCIIznaky
+  sa beru samostatne.
+Ak sa pracuje s datami, prenasa sa pocet bytov a byty sa prenasaju ako 2 ASCII
+  znaky !!!!
+;--------------------------------------
+
