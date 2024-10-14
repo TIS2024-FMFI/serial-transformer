@@ -1,0 +1,87 @@
+Popis cinnosti modulu 'Slave deklinacie':
+Posledna aktualizacia 7.10.03
+
+Slave obsahuje:
+ - krokovy motor deklinacie, kt. moze ist v rychlom alebo pomalom rezime
+   /motor je riadeny v mikrokrokovacom rezime 1 mikrokrok /ukr/ 
+   predstavuje 0.1038 obl."
+-  inkrementalny snimac polohy v deklin. osi
+-  dve tlacitka na rucny pohon  /su aktivne len ak je pred ich stlacenim 
+   motor zastaveny, pocas rucneho pohonu je komunikacia a meranie zakazane/
+-  rele na spinanie kamery so ZJO 
+
+Komunikacia s masterom :
+
+Protokol: Protokol na ovladanie dalekohladu vid. Kommod.asm
+
+Adresa: 35h
+
+A. Telegramy Master -> Slave:
+
+1. 
+Nulovy tel:
+Dlzka: 0 bytov
+Odpoved: Nulovy tel.
+
+2.
+Prikaz na chod v rychlom rezime / ziadost o odpoved :
+Dlzka: 1 Byte : PRIKAZ
+Struktura:
+Bit:    7  6  5  4  3  2  1  0
+        |  |  |  |  |  ----------->Pozadovana rychlost   :   0 - STOJ
+        |  |  |  |  |                                        1 - 7200 ukr/s   
+        |  |  |  |  Pozad.smer: 0 +                          2 - 9600 ukr/s
+        |  |  |  |              1 -                          3 - 14400 ukr/s
+        |  |  |  Zap/Vyp.rele: 1: ZAP, 0 VYP.   
+        |  |  Ziadost o odpoved obsahujucu nastavenu rychlost:1:ANO, 0:NIE 
+        |  |   /ma vyssiu prioritu ako bit 6./                                                  
+        |  Ziadost o odpoved obsahujucu : 1:STAV SNIMACA                        
+        |                                 0:POCET KROKOV                                           
+        |                      
+        0:Len ziadost o odpoved
+        1:Povel  
+               
+3.
+Prikaz na chod v pomalom rezime:
+Dlzka: 3 Byte
+
+Struktura:
+Byty: 1.PRIKAZ  2.MSB_DELICA  3.LSB_DELICA
+PRIKAZ: to iste ako u 1.Bytoveho telegramu , bity 0,1,2 irelevantne  
+MSB_DELICA,LSB_DELICA: 
+16 bitove cislo, od 4 do FFFFH ktorym sa deli 10800 ukr/s, mozme nim
+teda nastavit rychlost v pomalom rezime v rozsahu 0.164 ukr/s do
+2700 ukr/s. V tomto rezime sa rychlost meni skokom, cize min. 4
+je tam preto aby motor pri reverze nezmrzol.  
+
+
+ODPOVEDE:
+        Odpoved je 5 bytova zavisi od bitov 5. a 6. bytu PRIKAZ
+         
+PRIKAZ.5==1, PRIKAZ.6==X /irelevant./:
+
+    1.STAV   2.LSB_DELICA   3.MSB_DELICA   4.RYCHLY_REZIM   5.REZERVA
+
+PRIKAZ.5==0, PRIKAZ.6==0 :
+
+     1.STAV   2.LSB_SNIMAC   3.2_SNIMAC   4.3_SNIMAC   5.MSB_SNIMAC
+     /signed long SNIMAC (32bit)
+  
+PRIKAZ.5==0, PRIKAZ.6==1
+
+     1.STAV   2.LSB_POCKR  3.2_POCKR   4.3_POCKR   5.MSB_POCKR
+     /unsigned long POCKR (POCET KROKOV nuluje sa pri kazdom povele
+     (nie pri ziadosti o odpoved)
+                 
+Byte STAV:
+
+/aktivna 1/
+ST  STAV.0 - motor stoji 
+RP  STAV.1 - motor ide v rychom rezime v smere +
+RM  STAV.2 - motor ide v rychom rezime v smere -
+AP  STAV.3 - motor akceleruje/deceleruje  v rychom rezime v smere +
+AM  STAV.4 - motor akceleruje/deceleruje  v rychom rezime v smere - 
+PP  STAV.5 - motor ide v pomalom rezime v smere +
+PM  STAV.6 - motor ide v pomalom rezime v smere -
+REL STAV.7 - rele zapnute 
+

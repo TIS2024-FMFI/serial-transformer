@@ -1,0 +1,134 @@
+Popis komunikacie modulu 'Slave hodinoveho stroja' Verzia 2:
+ 
+Posledna aktualizacia 16.6.09
+
+
+Protokol: Protokol na ovladanie dalekohladu vid. commod.asm
+
+Adresa: 33h
+
+A. Telegramy Master -> Slave:
+
+1. 
+Nulovy tel:
+Dlzka: 0 bytov
+Odpoved: Nulovy tel.
+
+2.
+Prikaz na chod v rezime bez prepinania rychlosti:
+Dlzka: 1 Byte
+Struktura:
+Bit: 7 6 5 4 3 2 1 0
+     | | | | ------->Pozadovana rychlost
+     | | | |->Rezerva
+     | | |->REZERVA                          //(Typ odpovede: 0: kroky, 1: impulzy)
+     | |->0: Bez predosleho Resetu 1: s resetom
+     |->0: Len poziadavka na odpoved /Ostatne bity irelevantne/
+        1: Poziadavka na zmenu rychlosti
+
+3.
+Prikaz na chod v rezime s prepinanim rychlosti:
+Dlzka: 6 Byte
+Struktura:
+Byty: 1.TYP POZIADAVKY 2.RYCHLOSTI 3.MSBTHV1 4.LSBTHV1 5.MSBTLV1 6.LSBTLV1
+                                   ------------------- -------------------
+                                                          >cas chodu		 
+                                            |          motora rychlostou 2 /LV/ [ms]
+                                            ->cas chodu motora rychlostou 1 /HV/[ms]
+Byte:      TYP POZIADAVKY: 
+Bit:       7 6 5 4 3 2 1 0
+           | | ----------->Rezerva irelevantne bity
+           | |   
+           | |->REZERVA                   //(Typ odpovede: 0: kroky, 1: impulzy) 
+           |->0:Bez predosleho resetu; 1: S Resetom  
+
+
+Byte :        RYCHLOSTI: 
+Bit:       7 6 5 4 3 2 1 0
+           ------- -------
+              |       |   
+              |       |->Rychlost 2 
+              |->Rychlost 1  
+
+
+Tabulka pouzivanych rychlosti:
+
+Program dava jednotke CD40M prikazy cez vystupy B1 - B4 kde
+B1-B4 udavaju pozadovany rychlost O5 je LMT a O6 je RST. 
+Kazdej rychlosti musi vo vnutornom programe
+jednotku CD40M zodpovedat prislusna sekvencia. 
+POZN: V rezime ovladania s prepinanim je mozne pouzit len rychlosti
+3,4,5,6,7,8,9,A,B a to v smere +. Ostatne rychlosti potrebuju akceleraciu
+a deceleraciu. 
+
+ Vstupy CD40M
+B4  B3  B2  B1      RYCHLOST kr/s    CISLO
+-------------------------------------------
+0   0   0   0         -4000            0 
+0   0   0   1         -2000            1
+0   0   1   0          -300            2
+0   0   1   1            37            3
+0   1   0   0            38            4
+0   1   0   1            39            5
+0   1   1   0            40            6
+0   1   1   1            41            7
+1   0   0   0            42            8
+1   0   0   1            43            9
+1   0   1   0            44            A
+1   0   1   1            80            B
+1   1   0   0           300            C
+1   1   0   1          2000            D
+1   1   1   0          4000            E
+1   1   1   1            0             F
+-------------------------------------------
+      
+
+
+B. Odpovede: Telegramy Slave -> Master
+
+1. 
+Nulovy tel:
+Dlzka: 0 bytov
+Odpoved: Nulovy tel.
+
+2.
+Normalny telegram
+Dlzka: 7 Bytov
+Struktura:
+Byty: 1.STAV 2.AKT.SEK.       3.4.5.6.     7.8.9.10.      11.12.13.14  
+              ----------      --------     --------       ------------
+              uchar aktual.  signed long   signed long      long                              
+  	        sekunda na    impulzy       impulzy           Q
+              ktoru sa         IRC           IRC                      
+              vytahuje Q     povodneho      presneho
+	             
+Byte STAV:
+Bit:      7 6 5 4 3 2 1 0
+          | | | | --------> aktualna rychlost
+          | | | |
+          Rezerva 		   	 			
+               
+
+
+Q je pocet impulzov presneho snimaca za AKT.SEK. Meria sa v aktualnej skunde AKT.SEK.
+  
+
+POZNAMKY:
+
+Pri pouziti rychlosti s akceleraciou teda 4000, 2000, 300 kr/s treba pocitat s casom
+nabehu/dobehu, co sa da ciastocne identifikovat stavom snimacov.
+
+Meranie poctu krokov som vypustil, pretoze je asi nepouzitelne kvoli velkym casovym
+oneskoreniam systemu.
+               
+Po zapnutu slavu je defaultne vygenerovana rychlost 0 kr/s s resetom bez prepinania a su
+vynulovane stavy snimacov.         
+
+V rezime s prepinanim nefunguje volba "S RESETOM", to musim este odladit.
+
+V jednotke CD40M je navoleny max. prud motora (4 A), takze by to malo utiahnut aj velke 
+rychlosti; aspon 2000kr/s
+
+
+
+
