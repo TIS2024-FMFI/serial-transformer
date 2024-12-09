@@ -28,7 +28,8 @@ class AutomaticSerialTransformer {
       }
   }
   void transformSerial(){
-      data = data + 1;
+    //raise "Not implemented"
+    throw "Not implemented";
 
   }
   void writeSerial(){
