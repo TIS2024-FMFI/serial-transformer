@@ -1,5 +1,7 @@
 class UniversalTransformer {
 public:
+  char data;
+  char buffer[100];
   UniversalTransformer() {}
   
   
@@ -15,7 +17,8 @@ public:
   }
   void transformSerial(){
     //raise "Not implemented"
-    throw "Not implemented";
+    //throw "Not implemented";
+    return;
 
   }
   void writeSerial(){

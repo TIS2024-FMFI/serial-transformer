@@ -29,7 +29,8 @@ class AutomaticSerialTransformer {
   }
   void transformSerial(){
     //raise "Not implemented"
-    throw "Not implemented";
+    //throw "Not implemented";
+    return;
 
   }
   void writeSerial(){
