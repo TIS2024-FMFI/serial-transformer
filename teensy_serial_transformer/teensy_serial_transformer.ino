@@ -1,11 +1,16 @@
+#include "logs.h"
 #include "automatic_transformer.h"
 #include "universal_transformer.h"
 #include "webserver.h"
+
 #include <SPI.h>
+#include <SD.h>
+#include <string>
 //#include <NativeEthernet.h>
 #include <QNEthernet.h>
 using namespace qindesign::network;
-#include <string>
+
+
 
 constexpr uint32_t kDHCPTimeout = 15000;  // 15 seconds
 constexpr uint16_t kServerPort = 80;
@@ -42,10 +47,6 @@ void setup() {
     Serial.println("Failed to start Ethernet");
     return;
   }
-  if (Ethernet.linkStatus() == LinkOFF) 
-  {
-    Serial.println("Ethernet cable is not connected.");
-  }
   if (!Ethernet.waitForLocalIP(kDHCPTimeout)) {
     Serial.println("Failed to get IP address from DHCP");
   } else {
@@ -62,7 +63,10 @@ void setup() {
     Serial.printf("Listening for clients on port %u...\n", kServerPort);
     server.begin();
   }
-
+  if (!SD.begin(BUILTIN_SDCARD)) {
+    Serial.println("SD initialization failed!");
+    while (1);
+  }
 
 
   Serial2.begin(9600);
@@ -81,9 +85,11 @@ int accumulator = 0;
 float ra = 0.0;  // Right Ascension
 float dec = 0.0;  // Declination
 
-
-AutomaticSerialTransformer ast(1.0, 1.0);
-TransformWebServer transform_webserver(server_ptr);
+SerialLogger logger;
+SerialLogger* logger_ptr = &logger;
+AutomaticSerialTransformer ast(1.0, 1.0, logger_ptr);
+AutomaticSerialTransformer* ast_ptr = &ast;
+TransformWebServer transform_webserver(server_ptr, ast_ptr, logger_ptr);
 
 void loop() {
   // listen for incoming clients
