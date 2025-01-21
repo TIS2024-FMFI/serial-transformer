@@ -7,7 +7,7 @@ int speeds[] = {-4000, -2000, -300, 37, 38, 39, 40, 41, 42, 43, 44, 80, 300, 200
 class AutomaticSerialTransformer {
   public:
     SerialLogger* logger;
-    double ra_ratio = 1.03;
+    double ra_ratio = 1.0;
     double dec_ratio = 1.0;
     int original_speed_ra = 15;
     int original_speed_ra_steps = 0;
@@ -124,7 +124,7 @@ class AutomaticSerialTransformer {
     }
     if (state==3){
       data+=String(input);
-      if (data.length()==data_length.toInt()){
+      if ((long) data.length()==data_length.toInt()){
         if (data.length()==1){
           char b = data[0];
           if ((b >> 7) & 1){
@@ -156,7 +156,7 @@ class AutomaticSerialTransformer {
             }
             //set 4 last bits to new speed
             b = (b & 0xF0) | new_speed;
-            
+     
             setSpeedRa(requested_speed, new_speed); 
 
           }

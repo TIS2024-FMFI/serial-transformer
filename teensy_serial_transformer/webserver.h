@@ -43,7 +43,6 @@ public:
       String request = "";
       Serial.println("new client");
       // an http request ends with a blank line
-      boolean currentLineIsBlank = true;
       while (client.connected()) {
         if (client.available()) {
           char c = client.read();
@@ -62,7 +61,7 @@ public:
               client.println();
               String logs = logger->read_logs(10);
               //go thorgh every char in logs and send it to client
-              for (int i = 0; i < logs.length(); i++) {
+              for (u_int i = 0; i < logs.length(); i++) {
                 client.writeFully(logs[i]);
               }
             } else if (request.indexOf("GET /log_action?command=clear") != -1) {
@@ -82,7 +81,7 @@ public:
               client.println();
               String logs = logger->read_logs(0);
               //go thorgh every char in logs and send it to client
-              for (int i = 0; i < logs.length(); i++) {
+              for (u_int i = 0; i < logs.length(); i++) {
                 client.writeFully(logs[i]);
               }
             } else if (request.indexOf("GET /reset_accumulators") != -1) {
@@ -134,14 +133,6 @@ public:
             }
             // End the response
             break;
-          }
-
-          if (c == '\n') {
-            // you're starting a new line
-            currentLineIsBlank = true;
-          } else if (c != '\r') {
-            // you've gotten a character on the current line
-            currentLineIsBlank = false;
           }
         }
       }
