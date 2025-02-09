@@ -10,9 +10,13 @@ class AutomaticSerialTransformer {
     double ra_ratio = 1.0;
     double dec_ratio = 1.0;
     int original_speed_ra = 15;
+    int original_speed_dec = 15;
     int original_speed_ra_steps = 0;
+    int original_speed_dec_steps = 0;
     int transformed_speed_ra = 15;
+    int transformed_speed_dec = 15;
     int transformed_speed_ra_steps = 0;
+    int transformed_speed_dec_steps = 0;
     int speed_changes = 0;
 
     double ra_original_distance = 0.0;
@@ -64,6 +68,7 @@ class AutomaticSerialTransformer {
 
     char input;
     char buffer[100];
+
     void setSpeedRa(int speed, int new_speed){
       original_speed_ra = speed;
       original_speed_ra_steps = speeds[speed];
@@ -79,6 +84,23 @@ class AutomaticSerialTransformer {
       ra_original_distance += original_speed_ra_steps*time_diff;
       ra_transformed_distance += transformed_speed_ra_steps*time_diff;
       last_ra_transformed = new_last_ra_transformed;
+    }
+
+    void setSpeedDec(int speed, int new_speed){
+      original_speed_dec = speed;
+      original_speed_dec_steps = speeds[speed];
+      transformed_speed_dec = new_speed;
+      transformed_speed_dec_steps = speeds[new_speed];
+      logger->log("Speed DEC set from " + String(original_speed_dec) + " to " + String(transformed_speed_dec));
+      speed_changes++;
+      //now time
+      time_t t = time(NULL);
+      struct tm tm = *localtime(&t);
+      int new_last_dec_transformed = tm.tm_hour*3600 + tm.tm_min*60 + tm.tm_sec;
+      int time_diff = new_last_dec_transformed - last_dec_transformed;
+      dec_original_distance += original_speed_dec_steps*time_diff;
+      dec_transformed_distance += transformed_speed_dec_steps*time_diff;
+      last_dec_transformed = new_last_dec_transformed;
     }
 
 
@@ -133,34 +155,130 @@ class AutomaticSerialTransformer {
             //set the requested speed to the value of the last 4 bits
             requested_speed = b & 0x0F;
             int new_speed = requested_speed;
-            if (ra_transformed_distance <= ra_original_distance*ra_ratio){
-              if (requested_speed!=3){
-                //set new speed to closest higher speed than speeds[requested_speed] * ra_ratio 
-                for (int i = 0; i < 16; i++){
-                  if (speeds[i] > speeds[requested_speed]*ra_ratio){
-                    new_speed = i;
-                    break;
+            if (module_address=="33"){
+              if (ra_transformed_distance <= ra_original_distance*ra_ratio){
+                if (requested_speed!=3){
+                  //set new speed to closest higher speed than speeds[requested_speed] * ra_ratio 
+                  for (int i = 0; i < 16; i++){
+                    if (speeds[i] > speeds[requested_speed]*ra_ratio){
+                      new_speed = i;
+                      break;
+                    }
                   }
-                }
-              } else {new_speed = 15;};
-            } else {
-              if (requested_speed!=15 || requested_speed!= 14){
-                //set new speed to closest lower speed than speeds[requested_speed] * ra_ratio 
-                for (int i = 14; i >= 0; i--){
-                  if (speeds[i] < speeds[requested_speed]*ra_ratio){
-                    new_speed = i;
-                    break;
+                } else {new_speed = 15;};
+              } else {
+                if (requested_speed!=15 || requested_speed!= 14){
+                  //set new speed to closest lower speed than speeds[requested_speed] * ra_ratio 
+                  for (int i = 14; i >= 0; i--){
+                    if (speeds[i] < speeds[requested_speed]*ra_ratio){
+                      new_speed = i;
+                      break;
+                    }
                   }
-                }
-              } else {new_speed = 3;}; 
+                } else {new_speed = 3;}; 
+              }
+            }
+            if (module_address=="35"){
+              if (dec_transformed_distance <= dec_original_distance*dec_ratio){
+                if (requested_speed!=3){
+                  //set new speed to closest higher speed than speeds[requested_speed] * ra_ratio 
+                  for (int i = 0; i < 16; i++){
+                    if (speeds[i] > speeds[requested_speed]*dec_ratio){
+                      new_speed = i;
+                      break;
+                    }
+                  }
+                } else {new_speed = 15;};
+              } else {
+                if (requested_speed!=15 || requested_speed!= 14){
+                  //set new speed to closest lower speed than speeds[requested_speed] * ra_ratio 
+                  for (int i = 14; i >= 0; i--){
+                    if (speeds[i] < speeds[requested_speed]*dec_ratio){
+                      new_speed = i;
+                      break;
+                    }
+                  }
+                } else {new_speed = 3;}; 
+              }
             }
             //set 4 last bits to new speed
             b = (b & 0xF0) | new_speed;
-     
-            setSpeedRa(requested_speed, new_speed); 
-
+            writeSerial(b);
+            if (module_address=="33"){
+              setSpeedRa(requested_speed, new_speed); 
+            }
+            if (module_address=="35"){
+              setSpeedDec(requested_speed, new_speed);
+            }
           }
           
+        }
+        if (data.length()==6){
+          char b = data[1];
+          int requested_speed1 = b >> 4;
+          int requested_speed2 = b & 0x0F;
+          int speed_high = speeds[requested_speed1];
+          int speed_low = speeds[requested_speed2];
+
+          int new_speed_high = speed_high;
+          int new_speed_low = speed_low;
+
+          
+          int time_high = (data[2] << 8) | data[3];
+          int time_low = (data[4] << 8) | data[5];
+
+          int new_time_high = time_high;
+          int new_time_low = time_low;
+
+          //calculate real speed based on the ratio of times
+          int real_speed = (speed_high*time_high + speed_low*time_low)/(time_high+time_low);
+          int new_real_speed = real_speed;
+          
+          if (module_address=="33"){
+            new_real_speed = real_speed*ra_ratio;
+          } else if (module_address=="35"){
+            new_real_speed = real_speed*dec_ratio;
+          }
+          //if new real speed is higher than speed high, set new high speed to the closest higher speed than high speed
+          //if new real speed is lower than speed low, set new low speed to the closest lower speed than low speed
+          
+          if (new_real_speed > speed_high){
+            for (int i = 0; i < 16; i++){
+              if (speeds[i] > new_real_speed){
+                requested_speed1 = i;
+                new_speed_high = speeds[i];
+                break;
+              }
+            }
+          } else if (new_real_speed < speed_low){
+            for (int i = 15; i >= 0; i--){
+              if (speeds[i] < new_real_speed){
+                requested_speed2 = i;
+                new_speed_low = speeds[i];
+                break;
+              }
+            }
+          }
+
+          new_time_high = time_high*new_speed_high/new_real_speed;
+          new_time_low = time_low*new_speed_low/new_real_speed;
+        
+          //send the new speeds and times
+          writeSerial(data[0]);
+          writeSerial((requested_speed1 << 4) | requested_speed2);
+          writeSerial((new_time_high >> 8) & 0xFF);
+          writeSerial(new_time_high & 0xFF); 
+          writeSerial((new_time_low >> 8) & 0xFF);
+          writeSerial(new_time_low & 0xFF);
+
+          if (module_address=="33"){
+            setSpeedRa(real_speed, new_real_speed);
+          }
+          if (module_address=="35"){
+            setSpeedDec(real_speed, new_real_speed);
+          }
+
+
         }
         state=4;
         Serial.println("State chnaged to 4");
