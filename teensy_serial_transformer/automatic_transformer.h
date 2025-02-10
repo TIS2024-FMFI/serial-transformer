@@ -135,25 +135,29 @@ class AutomaticSerialTransformer {
       Serial.println("Data length: " + data_length);
       if (data_length.toInt()==0){
         state=4;
-        Serial.println("State chnaged to 4");
+        Serial.println("State changed to 4");
       }
       else{
         state=3;
-        Serial.println("State chnaged to 3");
+        Serial.println("State changed to 3");
       }
       writeSerial(input);
       return;
     }
     if (state==3){
       data+=String(input);
-      if ((long) data.length()==data_length.toInt()){
-        if (data.length()==1){
+      if ((long) data.length()==data_length.toInt()*2){
+        if (data.length()==2){
           char b = data[0];
-          if ((b >> 7) & 1){
+          if (b >= 56){
             Serial.println("First bit is 1");
             int requested_speed;
             //set the requested speed to the value of the last 4 bits
-            requested_speed = b & 0x0F;
+            requested_speed = data[1];
+            if (requested_speed > 57){
+              requested_speed = requested_speed - 7;
+            }
+            requested_speed = requested_speed - 48;
             int new_speed = requested_speed;
             if (module_address=="33"){
               if (ra_transformed_distance <= ra_original_distance*ra_ratio){
@@ -202,8 +206,13 @@ class AutomaticSerialTransformer {
               }
             }
             //set 4 last bits to new speed
-            b = (b & 0xF0) | new_speed;
-            writeSerial(b);
+            char speed_char = new_speed;
+            speed_char = speed_char + 48;
+            if (speed_char > 57){
+              speed_char = speed_char + 7;
+            }
+            writeSerial(data[0]);
+            writeSerial(speed_char);
             if (module_address=="33"){
               setSpeedRa(requested_speed, new_speed); 
             }
@@ -213,19 +222,33 @@ class AutomaticSerialTransformer {
           }
           
         }
-        if (data.length()==6){
-          char b = data[1];
-          int requested_speed1 = b >> 4;
-          int requested_speed2 = b & 0x0F;
+        if (data.length()==12){
+          int requested_speed1 = data[2];
+          int requested_speed2 = data[3];
+          if (requested_speed1 > 57){
+            requested_speed1 = requested_speed1 - 7;
+          }
+          if (requested_speed2 > 57){
+            requested_speed2 = requested_speed2 - 7;
+          }
+          requested_speed1 = requested_speed1 - 48;
+          requested_speed2 = requested_speed2 - 48;
           int speed_high = speeds[requested_speed1];
           int speed_low = speeds[requested_speed2];
 
           int new_speed_high = speed_high;
           int new_speed_low = speed_low;
 
+          for (int i=4; i<=11; i++){
+            if (data[i] > 57){
+              data[i] = data[i] - 7;
+            }
+            data[i] = data[i] - 48;
+          }
           
-          int time_high = (data[2] << 8) | data[3];
-          int time_low = (data[4] << 8) | data[5];
+          int time_high = (data[4] << 12) | (data[5] << 8) | (data[6] << 4) | data[7];
+          int time_low = (data[8] << 12) | (data[9] << 8) | (data[10] << 4) | data[11];
+          Serial.println("Time high: " + String(time_high) + " Time low: " + String(time_low) + " Speed high: " + String(requested_speed1) + " Speed low: " + String(requested_speed2));
 
           int new_time_high = time_high;
           int new_time_low = time_low;
@@ -264,12 +287,31 @@ class AutomaticSerialTransformer {
           new_time_low = time_low*new_speed_low/new_real_speed;
         
           //send the new speeds and times
-          writeSerial(data[0]);
-          writeSerial((requested_speed1 << 4) | requested_speed2);
-          writeSerial((new_time_high >> 8) & 0xFF);
-          writeSerial(new_time_high & 0xFF); 
-          writeSerial((new_time_low >> 8) & 0xFF);
-          writeSerial(new_time_low & 0xFF);
+          data[2] = requested_speed1 + 48;
+          if (data[2] > 57){
+            data[2] = data[2] + 7;
+          }
+          data[3] = requested_speed2 + 48;
+          if (data[3] > 57){
+            data[3] = data[3] + 7;
+          }
+          data[4] = (new_time_high >> 12) & 0x0F;
+          data[5] = (new_time_high >> 8) & 0x0F;
+          data[6] = (new_time_high >> 4) & 0x0F;
+          data[7] = new_time_high & 0x0F;
+          data[8] = (new_time_low >> 12) & 0x0F;
+          data[9] = (new_time_low >> 8) & 0x0F;
+          data[10] = (new_time_low >> 4) & 0x0F;
+          data[11] = new_time_low & 0x0F;
+          for (int i=4; i<=11; i++){
+            data[i] = data[i] + 48;
+            if (data[i] > 57){
+              data[i] = data[i] + 7;
+            }
+          }
+          for (int i=0; i<12; i++){
+            writeSerial(data[i]);
+          }
 
           if (module_address=="33"){
             setSpeedRa(real_speed, new_real_speed);
