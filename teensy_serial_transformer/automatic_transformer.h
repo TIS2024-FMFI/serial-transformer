@@ -58,12 +58,12 @@ class AutomaticSerialTransformer {
     }
     void readSerial(){
       // Read serial data
-      if (Serial2.available() > 0) {
+      if (Serial.available() > 0) {
           // Read the incoming byte:
-          input = Serial2.read();
+          input = Serial.read();
           
           transformSerial();
-          Serial.println(input);
+          Serialprintln(input);
       }
     }
   private:
@@ -127,21 +127,21 @@ class AutomaticSerialTransformer {
     if (state == 5 && input=='U'){
       state=0;
       writeSerial(input);
-      Serial.println("State chnaged to 0");
+      Serial2.println("State chnaged to 0");
       return;
     }
     if (state==0){
       module_address=String(input);
       state=1;
       writeSerial(input);
-      Serial.println("State chnaged to 1");
+      Serial2.println("State chnaged to 1");
       return;
     }
     if (state==1){
       module_address+=String(input);
       state=2;
       writeSerial(input);
-      Serial.println("State chnaged to 2");
+      Serial2.println("State chnaged to 2");
       return;
     }
     if (state==2 && data_length==""){
@@ -150,14 +150,14 @@ class AutomaticSerialTransformer {
     }
     if (state==2 && data_length!=""){
       data_length+=String(input);
-      Serial.println("Data length: " + data_length);
+      Serial2.println("Data length: " + data_length);
       if (data_length.toInt()==0){
         state=4;
-        Serial.println("State changed to 4");
+        Serial2.println("State changed to 4");
       }
       else{
         state=3;
-        Serial.println("State changed to 3");
+        Serial2.println("State changed to 3");
       }
       writeSerial(input);
       return;
@@ -168,7 +168,7 @@ class AutomaticSerialTransformer {
         if (data.length()==2){
           char b = data[0];
           if (b >= 56){
-            Serial.println("First bit is 1");
+            Serial2.println("First bit is 1");
             int requested_speed;
             //set the requested speed to the value of the last 4 bits
             requested_speed = data[1];
@@ -266,7 +266,7 @@ class AutomaticSerialTransformer {
           
           int time_high = (data[4] << 12) | (data[5] << 8) | (data[6] << 4) | data[7];
           int time_low = (data[8] << 12) | (data[9] << 8) | (data[10] << 4) | data[11];
-          Serial.println("Time high: " + String(time_high) + " Time low: " + String(time_low) + " Speed high: " + String(requested_speed1) + " Speed low: " + String(requested_speed2));
+          Serial2.println("Time high: " + String(time_high) + " Time low: " + String(time_low) + " Speed high: " + String(requested_speed1) + " Speed low: " + String(requested_speed2));
 
           int new_time_high = time_high;
           int new_time_low = time_low;
@@ -346,14 +346,14 @@ class AutomaticSerialTransformer {
           }
         }
         state=4;
-        Serial.println("State chnaged to 4");
+        Serial2.println("State chnaged to 4");
         return;
       }
     }
     if (state==4 && checksum==""){
       checksum=String(input);
       writeSerial(input);
-      Serial.println("State chnaged to 4");
+      Serial2.println("State chnaged to 4");
       return;
     }
     if (state==4 && checksum!=""){
@@ -365,7 +365,7 @@ class AutomaticSerialTransformer {
       checksum="";
       end_of_message="";
 
-      Serial.println("State chnaged to 5");
+      Serial2.println("State chnaged to 5");
       writeSerial(input);
     }
   }
