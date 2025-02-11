@@ -30,6 +30,24 @@ class AutomaticSerialTransformer {
       logger = ptr_logger;
     }
 
+    void reset(){
+      original_speed_ra = 15;
+      original_speed_dec = 15;
+      original_speed_ra_steps = 0;
+      original_speed_dec_steps = 0;
+      transformed_speed_ra = 15;
+      transformed_speed_dec = 15;
+      transformed_speed_ra_steps = 0;
+      transformed_speed_dec_steps = 0;
+      speed_changes = 0;
+
+      ra_original_distance = 0.0;
+      dec_original_distance = 0.0;
+
+      ra_transformed_distance = 0.0;
+      dec_transformed_distance = 0.0;
+    }
+
     void setRaRatio(double ra) {
         ra_ratio = ra;
         logger->log("RA ratio set to " + String(ra));
@@ -321,6 +339,11 @@ class AutomaticSerialTransformer {
           }
 
 
+        }
+        if (data.length()!=12 && data.length()!=2){
+          for (int i=0; i<data.length(); i++){
+            writeSerial(data[i]);
+          }
         }
         state=4;
         Serial.println("State chnaged to 4");

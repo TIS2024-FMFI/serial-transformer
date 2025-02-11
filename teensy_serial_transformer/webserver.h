@@ -59,11 +59,16 @@ public:
               client.println("Content-Type: text/html");
               client.println("Connection: close");
               client.println();
-              String logs = logger->read_logs(10);
+              client.println("<html><head><title>Logs</title></head><body>");
+              client.println("<h2>Logs</h2><pre>");
+              String logs = logger->read_logs(0);
               //go thorgh every char in logs and send it to client
               for (u_int i = 0; i < logs.length(); i++) {
                 client.writeFully(logs[i]);
               }
+              client.println("</pre>");
+              client.println("<button onclick=\"window.history.back();\">Back</button>");
+              client.println("</body></html>");
             } else if (request.indexOf("GET /log_action?command=clear") != -1) {
               // Clear logs action
               client.println("HTTP/1.1 200 OK");
@@ -71,7 +76,9 @@ public:
               client.println("Connection: close");
               client.println();
               logger->delete_all_logs();
-              client.println("<html><body>Logs cleared.</body></html>");
+              client.println("<html><body>Logs cleared.");
+              client.println("<button onclick=\"window.history.back();\">Back</button>");
+              client.println("</body></html>");
             } else if (request.indexOf("GET /download_logs") != -1) {
               // Download all logs action
               client.println("HTTP/1.1 200 OK");
@@ -86,12 +93,14 @@ public:
               }
             } else if (request.indexOf("GET /reset_accumulators") != -1) {
               // Reset accumulators action
-              accumulator = 0;  // Reset the accumulator
+              ast->reset();  // Reset the accumulator
               client.println("HTTP/1.1 200 OK");
               client.println("Content-Type: text/html");
               client.println("Connection: close");
               client.println();
-              client.println("<html><body>Accumulators reset.</body></html>");
+              client.println("<html><body>Accumulators reset.");
+              client.println("<button onclick=\"window.history.back();\">Back</button>");
+              client.println("</body></html>");
             }
             // Handle form submissions for RA and DEC
             else if (request.indexOf("GET /?ra=") != -1) {
@@ -100,7 +109,9 @@ public:
               client.println("Content-Type: text/html");
               client.println("Connection: close");
               client.println();
-              client.println("<html><body>RA Submitted: " + String(ra) + "</body></html>");
+              client.println("<html><body>RA Submitted: " + String(ra) + "");
+              client.println("<button onclick=\"window.history.back();\">Back</button>");
+              client.println("</body></html>");
               ast->setRaRatio(ra);
             } else if (request.indexOf("GET /?dec=") != -1) {
               dec = getQueryParam(request, "dec").toFloat();  // Convert DEC to double
@@ -108,7 +119,9 @@ public:
               client.println("Content-Type: text/html");
               client.println("Connection: close");
               client.println();
-              client.println("<html><body>DEC Submitted: " + String(dec) + "</body></html>");
+              client.println("<html><body>DEC Submitted: " + String(dec) + "");
+              client.println("<button onclick=\"window.history.back();\">Back</button>");
+              client.println("</body></html>");
               ast->setDecRatio(dec);
             }
             // Send the HTML page content for root request
