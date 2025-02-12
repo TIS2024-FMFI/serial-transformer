@@ -37,11 +37,11 @@ class SerialLogger {
         filename.toCharArray(filename_char, filename.length() + 1);
         File logFile = SD.open(filename_char, FILE_WRITE);
         if (logFile) {
-            Serial.println("Writing to log file");
+            Serial2.println("Writing to log file");
             logFile.println(message);
             logFile.close();
         } else {
-            Serial.println("Error opening file to write logs");
+            Serial2.println("Error opening file to write logs");
         }
     }
     String read_logs(int amount) {
@@ -92,7 +92,7 @@ class SerialLogger {
             logFile.close();
             return logs;
         } else {
-            Serial.println("Error opening file");
+            Serial2.println("Error opening file");
             return "";
         }
     };

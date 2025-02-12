@@ -63,7 +63,7 @@ class AutomaticSerialTransformer {
           input = Serial.read();
           
           transformSerial();
-          Serialprintln(input);
+          Serial2.println(input);
       }
     }
   private:
