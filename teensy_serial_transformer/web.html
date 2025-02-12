@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <style>
+        body {
+    font-family: sans-serif;
+    background-color: #eee;
+    margin: 2rem;
+}
+h1 {
+    margin-bottom: 1rem;
+}
+
+/* Kontajner pre RA a DEC  */
+.flex-container {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start; 
+}
+
+.container {
+    background-color: #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    flex: 1;  
+}
+.section-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+.row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+label {
+    margin-right: 0.5rem;
+}
+select, input[type="number"], input[type="text"] {
+    margin-right: 1rem;
+}
+.horizontal-line {
+    border-top: 1px solid #aaa;
+    margin: 1rem 0;
+}
+
+/* ŠTATISTIKY*/
+.stats {
+    display: flex;              
+    justify-content: center;    
+    gap: 3rem;                  
+    margin: 1rem 0;
+}
+.stat-item {
+    text-align: center;         
+}
+.stat-label {
+    font-weight: normal;        
+    margin-bottom: 0.25rem;
+    display: block;            
+}
+.stat-value {
+    font-weight: bold;         
+    font-size: 1.2rem;         
+}
+
+/* prepínače (switch) */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+}
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .slider {
+    background-color: #66bb6a;
+}
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+/* Štýly tlačidiel */
+button {
+    margin: 0.2rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+}
+#buttonUkazatLogy {
+    background-color: #ccc;
+}
+#buttonZmazatLogy {
+    background-color: #f44336; 
+    color: #fff;
+}
+#buttonStiahnutLogy {
+    background-color: #009688; 
+    color: #fff;
+}
+#buttonResetAccumators {
+    background-color: #607d8b; 
+    color: #fff;
+}
+
+/* Kontajner na tlačidlá logy */
+.button-row {
+    display: flex;
+    justify-content: center;   
+    gap: 1rem;                
+    margin-bottom: 2rem;      
+}
+
+
+.button-row button {
+    font-size: 1.05rem;       
+    padding: 0.6rem 1rem;     
+}
+
+/* Kontajner na prepínače  */
+.toggle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+.toggle-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Transformačný modul pre teleskop</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1>Transformačný modul pre teleskop</h1>
+
+    <div class="horizontal-line"></div>
+
+    <!--  (Automatický/Manuálny) -->
+    <div class="row">
+        <label for="modeSelect">Nastavenie módu:</label>
+        <select id="modeSelect">
+            <option value="auto">Automatický</option>
+            <option value="manual">Manuálny</option>
+        </select>
+    </div>
+    
+    <!-- Kontajner, kde RA a DEC  -->
+    <div class="flex-container">
+        <!-- Kontajner pre RA -->
+        <div class="container">
+            <div class="section-title">RA</div>
+            
+            <!-- Zadanie rýchlosti pre RA -->
+            <form id="formRA" action="#" method="get" class="row">
+                <label for="ra">Rýchlosť:</label>
+                <input type="number" id="ra" name="ra" step="0.0001" placeholder="Zadajte rýchlosť" />
+                <button type="submit">Nastaviť</button>
+                <span style="margin-left: 1rem;">Aktuálna: <strong></strong></span>
+            </form>
+
+            <!-- Výber časového intervalu, výpočet  -->
+            <div class="row">
+                <label for="raInterval">Časový interval:</label>
+                <select id="raInterval">
+                    <option value="none">žiaden</option>
+                    <option value="10s">10s</option>
+                    <option value="30s">30s</option>
+                    <option value="1min">1 min</option>
+                    <option value="5min">5 min</option>
+                    <option value="10min">10 min</option>
+                    <option value="15min">15 min</option>
+                    <option value="20min">20 min</option>
+                    <option value="25min">25 min</option>
+                    <option value="30min">30 min</option>
+                </select>
+
+                <label for="raVypocet">Výpočet:</label>
+                <select id="raVypocet">
+                    <option value="none">žiaden</option>
+                    <option value="10s">10s</option>
+                    <option value="30s">30s</option>
+                    <option value="1min">1 min</option>
+                    <option value="5min">5 min</option>
+                    <option value="10min">10 min</option>
+                    <option value="15min">15 min</option>
+                    <option value="20min">20 min</option>
+                    <option value="25min">25 min</option>
+                    <option value="30min">30 min</option>
+                </select>
+            </div>
+
+        </div>
+
+        <!-- Kontajner pre DEC -->
+        <div class="container">
+            <div class="section-title">DEC</div>
+            
+            <form id="formDEC" action="#" method="get" class="row">
+                <label for="dec">Rýchlosť:</label>
+                <input type="number" id="dec" name="dec" step="0.0001" placeholder="Zadajte rýchlosť" />
+                <button type="submit">Nastaviť</button>
+                <span style="margin-left: 1rem;">Aktuálna: <strong></strong></span>
+            </form>
+
+            <div class="row">
+                <label for="decInterval">Časový interval:</label>
+                <select id="decInterval">
+                    <option value="none">žiaden</option>
+                    <option value="10s">10s</option>
+                    <option value="30s">30s</option>
+                    <option value="1min">1 min</option>
+                    <option value="5min">5 min</option>
+                    <option value="10min">10 min</option>
+                    <option value="15min">15 min</option>
+                    <option value="20min">20 min</option>
+                    <option value="25min">25 min</option>
+                    <option value="30min">30 min</option>
+                </select>
+
+                <label for="decVypocet">Výpočet:</label>
+                <select id="decVypocet">
+                    <option value="none">žiaden</option>
+                    <option value="10s">10s</option>
+                    <option value="30s">30s</option>
+                    <option value="1min">1 min</option>
+                    <option value="5min">5 min</option>
+                    <option value="10min">10 min</option>
+                    <option value="15min">15 min</option>
+                    <option value="20min">20 min</option>
+                    <option value="25min">25 min</option>
+                    <option value="30min">30 min</option>
+                </select>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ŠTATISTIKY  -->
+    <div class="stats">
+        <div class="stat-item">
+            <span class="stat-label">Zmenená rýchlosť</span>
+            <span class="stat-value">23</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Pozdržané</span>
+            <span class="stat-value">8</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Odoslané bez zmeny</span>
+            <span class="stat-value">13</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Zadržané</span>
+            <span class="stat-value">4</span>
+        </div>
+    </div>
+
+    <div class="horizontal-line"></div>
+
+    <!-- Tlačidlá na prácu s logmi -->
+    <div class="button-row">
+        <button id="buttonUkazatLogy">Ukázať logy</button>
+        <button id="buttonZmazatLogy">Zmazať všetky logy</button>
+        <button id="buttonStiahnutLogy">Downloadnúť všetky logy</button>
+        <button id="buttonResetAccumators">Reset accumulators</button>
+    </div>
+
+    <!-- Prepínače (deaktivácia prekladania / logovania)  -->
+    <div class="toggle-container">
+        <div class="toggle-item">
+            <label for="togglePrekladanie">Deaktivácia prekladania</label>
+            <label class="switch">
+                <input type="checkbox" id="togglePrekladanie" />
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="toggle-item">
+            <label for="toggleLogovanie">Deaktivácia logovania</label>
+            <label class="switch">
+                <input type="checkbox" id="toggleLogovanie" />
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- JavaScript na obsluhu tlačidiel (fetch) a módu (auto/manual) -->
+    <script>
+        // 1) HANDLER PRE REŽIM
+        function handleModeChange() {
+            const mode = document.getElementById("modeSelect").value;
+            const isManual = (mode === "manual");
+
+            // Získame polia RA a DEC
+            const raInput = document.getElementById("ra");
+            const decInput = document.getElementById("dec");
+
+            // Získame tlačidlá "Nastaviť" vo formulároch RA/DEC
+            const raSubmitBtn = document.querySelector("#formRA button[type='submit']");
+            const decSubmitBtn = document.querySelector("#formDEC button[type='submit']");
+
+            // Ak je AUTO, zakážeme polia a tlačidlá
+            // Ak je MANUAL, povolíme ich
+            raInput.disabled = !isManual;
+            decInput.disabled = !isManual;
+
+            raSubmitBtn.disabled = !isManual;
+            decSubmitBtn.disabled = !isManual;
+        }
+
+        window.addEventListener("load", handleModeChange);
+        document.getElementById("modeSelect").addEventListener("change", handleModeChange);
+
+        // 2) FETCH LOGIKA
+
+        // Ukázať logy (bez potvrdenia)
+        document.getElementById("buttonUkazatLogy").addEventListener("click", function() {
+            fetch("/log_action?command=show")
+                .then(response => response.text())
+                .then(data => {
+                    console.log(data);
+                });
+        });
+
+        // Zmazať logy (s potvrdením)
+        document.getElementById("buttonZmazatLogy").addEventListener("click", function() {
+            const confirmed = confirm("Naozaj chcete zmazať všetky logy?");
+            if (confirmed) {
+                fetch("/log_action?command=clear")
+                    .then(response => response.text())
+                    .then(data => {
+                        console.log(data);
+                    });
+            } else {
+                console.log("Zmazanie logov bolo zrušené.");
+            }
+        });
+
+        // Stiahnuť logy (bez potvrdenia)
+        document.getElementById("buttonStiahnutLogy").addEventListener("click", function() {
+            fetch("/download_logs")
+                .then(response => response.blob())
+                .then(data => {
+                    const url = window.URL.createObjectURL(data);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'logs.txt';
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                });
+        });
+
+        // Reset accumulators (s potvrdením)
+        document.getElementById("buttonResetAccumators").addEventListener("click", function() {
+            const confirmed = confirm("Naozaj chcete resetovať akumulátory?");
+            if (confirmed) {
+                fetch("/reset_accumulators")
+                    .then(response => response.text())
+                    .then(data => {
+                        console.log(data);
+                    });
+            } else {
+                console.log("Reset akumulátorov bol zrušený.");
+            }
+        });
+
+        // Prepínač (checkbox) pre prekladanie
+        document.getElementById("togglePrekladanie").addEventListener("change", function() {
+            const status = this.checked ? "enabled" : "disabled";
+            fetch(`/toggle_translation?status=${status}`)
+                .then(response => response.text())
+                .then(data => {
+                    console.log(data);
+                });
+        });
+
+        // Prepínač (checkbox) pre logovanie
+        document.getElementById("toggleLogovanie").addEventListener("change", function() {
+            const status = this.checked ? "enabled" : "disabled";
+            fetch(`/toggle_logging?status=${status}`)
+                .then(response => response.text())
+                .then(data => {
+                    console.log(data);
+                });
+        });
+    </script>
+
+</body>
+</html>
