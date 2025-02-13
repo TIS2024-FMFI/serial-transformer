@@ -6,6 +6,9 @@
 int speeds[] = { -4000, -2000, -300, 37, 38, 39, 40, 41, 42, 43, 44, 80, 300, 2000, 4000, 0 };
 class AutomaticSerialTransformer {
 public:
+  //que of integers to store the last 20 values of movement errors
+  int errors[20];
+  bool useCameraErrors = false;
   SerialLogger* logger;
   Settings* settings;
   double ra_ratio = 1.0;
@@ -52,6 +55,17 @@ public:
 
   int getSpeedChanges() {
     return speed_changes;
+  }
+
+  void addError(int error) {
+    for (int i = 0; i < 19; i++) {
+      errors[i] = errors[i + 1];
+    }
+    errors[19] = error;
+  }
+
+  void setMode(bool mode) {
+    useCameraErrors = mode;
   }
 
   void setRaRatio(double ra) {
