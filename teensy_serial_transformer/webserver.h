@@ -136,7 +136,7 @@ public:
                 String web_line = "";
                 while (myfile.available()) {
                   char charakter = myfile.read();
-                  client.print(charakter);
+                  client.writeFully(charakter);
                   
                 }
                 myfile.close();
