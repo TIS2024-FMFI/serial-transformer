@@ -1,3 +1,4 @@
+#include "settings.h"
 #include "logs.h"
 #include "automatic_transformer.h"
 #include "universal_transformer.h"
@@ -17,10 +18,10 @@ constexpr uint16_t kServerPort = 80;
 
 // The IP address info will be dependent on your local network
 // First 3 numbers must match router, last must be unique
-// 
-IPAddress ip{192, 168, 0, 107};   // Unique IP
-IPAddress sn{255,255,255,0};  // Subnet Mask
-IPAddress gw{10,0,0,1};       // Default Gateway
+//
+IPAddress ip{ 192, 168, 0, 107 };  // Unique IP
+IPAddress sn{ 255, 255, 255, 0 };  // Subnet Mask
+IPAddress gw{ 10, 0, 0, 1 };       // Default Gateway
 // Initialize the Ethernet server library with the IP address and port
 // to use.  (port 80 is default for HTTP):
 EthernetServer server(kServerPort);
@@ -40,7 +41,7 @@ void setup() {
   uint8_t mac[6];
   Ethernet.macAddress(mac);
   Serial2.printf("MAC = %02x:%02x:%02x:%02x:%02x:%02x\n",
-                mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+                 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
   Serial2.println("Starting Ethernet with DHCP...");
   if (!Ethernet.begin()) {
@@ -65,14 +66,14 @@ void setup() {
   }
   if (!SD.begin(BUILTIN_SDCARD)) {
     Serial2.println("SD initialization failed!");
-    while (1);
+    while (1)
+      ;
   }
 
 
   Serial.begin(9600);
   Serial3.begin(9600);
-
-} 
+}
 
 // Example settings that could be toggled
 bool translationEnabled = true;
@@ -82,12 +83,14 @@ String logs = "Log entry 1\nLog entry 2\nLog entry 3\n";
 // Example of accumulators
 int accumulator = 0;
 // Global variables for RA and DEC
-float ra = 0.0;  // Right Ascension
+float ra = 0.0;   // Right Ascension
 float dec = 0.0;  // Declination
 
+Settings settings;
+Settings* settings_ptr = &settings;
 SerialLogger logger;
 SerialLogger* logger_ptr = &logger;
-AutomaticSerialTransformer ast(1.0, 1.0, logger_ptr);
+AutomaticSerialTransformer ast(1.0, 1.0, logger_ptr, settings_ptr);
 AutomaticSerialTransformer* ast_ptr = &ast;
 TransformWebServer transform_webserver(server_ptr, ast_ptr, logger_ptr);
 
@@ -95,7 +98,6 @@ void loop() {
   // listen for incoming clients
   transform_webserver.handleWebServer();
   ast.readSerial();
-
 }
 // Function to extract query parameter from request string
 String getQueryParam(String request, String param) {

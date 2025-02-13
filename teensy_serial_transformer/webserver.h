@@ -20,7 +20,7 @@ public:
 
   float ra = 0.0;   // Right Ascension
   float dec = 0.0;  // Declination
-  TransformWebServer(EthernetServer* ptr_server, AutomaticSerialTransformer* ptr_ast, SerialLogger* ptr_logger) { 
+  TransformWebServer(EthernetServer* ptr_server, AutomaticSerialTransformer* ptr_ast, SerialLogger* ptr_logger) {
     server = ptr_server;
     ast = ptr_ast;
     logger = ptr_logger;
@@ -137,11 +137,10 @@ public:
                 while (myfile.available()) {
                   char charakter = myfile.read();
                   client.writeFully(charakter);
-                  
                 }
                 myfile.close();
               } else {
-                client.println("<html><body><h1>File not found!</h1></body></html>");                
+                client.println("<html><body><h1>File not found!</h1></body></html>");
               }
             }
             // End the response
@@ -153,5 +152,4 @@ public:
       Serial2.println("client disconnected");
     }
   }
-}
-;
+};
