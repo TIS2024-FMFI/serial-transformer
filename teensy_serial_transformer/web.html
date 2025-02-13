@@ -269,7 +269,7 @@ button {
     <div class="stats">
         <div class="stat-item">
             <span class="stat-label">Zmenená rýchlosť</span>
-            <span id="count_changed" class="stat-value">0</span>
+            <span class="stat-value">0</span>
         </div>
         <div class="stat-item">
             <span class="stat-label">Pozdržané</span>
@@ -315,19 +315,20 @@ button {
 
     <!-- JavaScript na obsluhu tlačidiel (fetch) a módu (auto/manual) -->
     <script>
-        //every 5 seconds ask for number_of_transformations and put the value into span with id count_changed
-        setInterval(() => {
-            fetch("/number_of_transformations")
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("count_changed").textContent = data.count_changed;
-                });
-        }, 5000);
-
         // 1) HANDLER PRE REŽIM
         function handleModeChange() {
+            fetch("/get_current_settings")
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("togglePrekladanie").checked = data.prekladanie === "enabled";
+                    document.getElementById("toggleLogovanie").checked = data.logovanie === "enabled";
+                    document.getElementById("modeSelect").value = data.mode;
+                })
+                .catch(error => console.error("Error fetching toggle states:", error));
+
             const mode = document.getElementById("modeSelect").value;
             const isManual = (mode === "manual");
+            const disabledTranslation = document.getElementById("togglePrekladanie").checked
 
             // Získame polia RA a DEC
             const raInput = document.getElementById("ra");
@@ -337,17 +338,23 @@ button {
             const raSubmitBtn = document.querySelector("#formRA button[type='submit']");
             const decSubmitBtn = document.querySelector("#formDEC button[type='submit']");
 
+            // Ak je deaktivovane prekladanie, zakazeme pole pre vyber modu
+            document.getElementById("modeSelect").disabled = disabledTranslation;
+
+            // Ak je deaktivovane prekladanie, zakazeme polia a tlacidla pre rychlosti
             // Ak je AUTO, zakážeme polia a tlačidlá
             // Ak je MANUAL, povolíme ich
-            raInput.disabled = !isManual;
-            decInput.disabled = !isManual;
+            raInput.disabled = !isManual || disabledTranslation;
+            decInput.disabled = !isManual || disabledTranslation;
+            raSubmitBtn.disabled = !isManual || disabledTranslation;
+            decSubmitBtn.disabled = !isManual || disabledTranslation;
 
-            raSubmitBtn.disabled = !isManual;
-            decSubmitBtn.disabled = !isManual;
         }
 
         window.addEventListener("load", handleModeChange);
         document.getElementById("modeSelect").addEventListener("change", handleModeChange);
+        document.getElementById("togglePrekladanie").addEventListener("change", handleModeChange);
+        document.getElementById("toggleLogovanie").addEventListener("change", handleModeChange);
 
         // 2) FETCH LOGIKA
 
@@ -378,6 +385,17 @@ button {
                 logWindow.document.write("<p>Error loading logs.</p>");
                 logWindow.document.close();
             });
+        });
+
+        // Zvolenie modu 
+        document.getElementById("modeSelect").addEventListener("change", function () {
+            const selectedMode = this.value;
+            fetch(`/set_mode?mode=${selectedMode}`)
+                .then(response => response.text())
+                .then(data => {
+                    console.log("Mode change response:", data);
+                })
+                .catch(error => console.error("Error setting mode:", error));
         });
 
 

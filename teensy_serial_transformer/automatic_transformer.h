@@ -33,6 +33,10 @@ public:
 
   double ra_transformed_distance = 0.0;
   double dec_transformed_distance = 0.0;
+
+  bool translationEnabled = true;
+  bool loggingEnabled = true;
+
   AutomaticSerialTransformer(double ra, double dec, SerialLogger* ptr_logger, Settings* ptr_settings) {
     constant_ra_ratio = ra;
     constant_dec_ratio = dec;
@@ -70,6 +74,22 @@ public:
 
   int getSpeedChanges() {
     return speed_changes;
+  }
+
+  bool isTranslationEnabled() { 
+    return translationEnabled; 
+  }
+
+  bool isLoggingEnabled() { 
+    return loggingEnabled; 
+  }
+
+  void setTranslationEnabled(bool enabled) { 
+    translationEnabled = enabled; 
+  }
+
+  void setLoggingEnabled(bool enabled) { 
+    loggingEnabled = enabled; 
   }
 
   void addError(int error) {
@@ -110,7 +130,9 @@ public:
     ra_ratio = ra;
     ra_original_distance = 0.0;
     ra_transformed_distance = 0.0;
-    logger->log("RA ratio set to " + String(ra));
+    if (loggingEnabled) {
+      logger->log("RA ratio set to " + String(ra));
+    }
     settings->setRaRatio(ra);
   }
   void setDecRatio(double dec) {
@@ -118,7 +140,9 @@ public:
     dec_ratio = dec;
     dec_original_distance = 0.0;
     dec_transformed_distance = 0.0;
-    logger->log("DEC ratio set to " + String(dec));
+    if (loggingEnabled) {
+      logger->log("DEC ratio set to " + String(dec));
+    }
     settings->setDecRatio(dec);
   }
   void readSerial() {
@@ -193,7 +217,9 @@ private:
     original_speed_ra_steps = speeds[speed];
     transformed_speed_ra = new_speed;
     transformed_speed_ra_steps = speeds[new_speed];
-    logger->log("Speed RA set from " + String(original_speed_ra) + " to " + String(transformed_speed_ra));
+    if (loggingEnabled) {
+      logger->log("Speed RA set from " + String(original_speed_ra) + " to " + String(transformed_speed_ra));
+    }
     speed_changes++;
     //now time
     time_t t = time(NULL);
@@ -210,7 +236,9 @@ private:
     original_speed_dec_steps = speeds[speed];
     transformed_speed_dec = new_speed;
     transformed_speed_dec_steps = speeds[new_speed];
-    logger->log("Speed DEC set from " + String(original_speed_dec) + " to " + String(transformed_speed_dec));
+    if (loggingEnabled) {
+      logger->log("Speed DEC set from " + String(original_speed_dec) + " to " + String(transformed_speed_dec));
+    }
     speed_changes++;
     //now time
     time_t t = time(NULL);

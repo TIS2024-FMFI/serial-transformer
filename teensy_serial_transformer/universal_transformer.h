@@ -7,12 +7,12 @@ public:
 
   void readSerial() {
     // Read serial data
-    if (Serial2.available() > 0) {
+    if (Serial.available() > 0) {
       // Read the incoming byte:
-      data = Serial2.read();
+      data = Serial.read();
 
       transformSerial();
-      Serial.println(data);
+      Serial2.println(data);
     }
   }
   void transformSerial() {

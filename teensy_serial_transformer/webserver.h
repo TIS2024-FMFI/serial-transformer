@@ -14,6 +14,7 @@ public:
   SerialLogger* logger;
   bool translationEnabled = true;
   bool loggingEnabled = true;
+  bool selectedMode = true;
 
   int accumulator = 0;
 
@@ -41,19 +42,67 @@ public:
     EthernetClient client = server->available();
     if (client) {
       String request = "";
-      Serial2.println("new client");
+      Serial.println("new client");
       // an http request ends with a blank line
       while (client.connected()) {
         if (client.available()) {
           char c = client.read();
-          //Serial2.println(c);
+          //Serial.println(c);
           request += c;
           // if you've gotten to the end of the line (received a newline
           // character) and the line is blank, the http request has ended,
           // so you can send a reply
           if (c == '\n') {
             // Check for specific requests
-            if (request.indexOf("GET /log_action?command=show") != -1) {
+            // Handle the new camera_api endpoint
+            if (request.indexOf("GET /camera_api") != -1) {
+              String password = getQueryParam(request, "passwd");         // zmenit podla requestu
+              String pixelCount = getQueryParam(request, "accel_const");  // zmenit podla requestu
+              if (password == "12345") {            // zadat spravne heslo
+                client.println("HTTP/1.1 200 OK");
+                client.println("Content-Type: text/html");
+                client.println("Connection: close");
+                client.println();
+                client.println("<html><body>");
+                client.println("<h1>Request successful.</h1>");
+                client.println("<p>Value: " + pixelCount + "</p>");
+                client.println("<button onclick=\"window.history.back();\">Back</button>");
+                client.println("</body></html>");
+
+                int pixCount = pixelCount.toInt();
+                Serial.print("Received Pixel Count: ");
+                Serial.println(pixCount);
+                ast->addError(pixCount);
+              } else {
+                client.println("HTTP/1.1 403 Forbidden");
+                client.println("Content-Type: text/html");
+                client.println("Connection: close");
+                client.println();
+                client.println("<html><body>");
+                client.println("<h1>Unauthorized</h1>");
+                client.println("<p>Incorrect password.</p>");
+                client.println("<button onclick=\"window.history.back();\">Back</button>");
+                client.println("</body></html>");
+              }
+            } else if (request.indexOf("GET /set_mode") != -1) {
+              String mode = getQueryParam(request, "mode");
+              client.println("HTTP/1.1 200 OK");
+              client.println("Content-Type: text/html");
+              client.println("Connection: close");
+              client.println();
+              client.println("<html><body>");
+              client.println("<h1>Mode Set: " + mode + "</h1>");
+              client.println("<button onclick=\"window.history.back();\">Back</button>");
+              client.println("</body></html>");
+              // Update the mode in AutomaticSerialTransformer
+              if (mode == "auto") {
+                  selectedMode = true;
+                  ast->setMode(true);
+              } else if (mode == "manual") {
+                  selectedMode = false;
+                  ast->setMode(false);
+              }
+            } else if (request.indexOf("GET /log_action?command=show") != -1) {
               // Show logs action
               client.println("HTTP/1.1 200 OK");
               client.println("Content-Type: text/html");
@@ -102,6 +151,46 @@ public:
               client.println("<button onclick=\"window.history.back();\">Back</button>");
               client.println("</body></html>");
             }
+            // Toggle translationEnabled
+            else if (request.indexOf("GET /toggle_translation") != -1) {
+                translationEnabled = !translationEnabled;  // Toggle the value
+                ast->setTranslationEnabled(translationEnabled);   // Update the value in AutomaticSerialTransformer
+                client.println("HTTP/1.1 200 OK");
+                client.println("Content-Type: text/html");
+                client.println("Connection: close");
+                client.println();
+                client.println("<html><body>");
+                client.println("<h1>Translation " + String(translationEnabled ? "Enabled" : "Disabled") + "</h1>");
+                client.println("<button onclick=\"window.history.back();\">Back</button>");
+                client.println("</body></html>");
+            }
+            // Toggle loggingEnabled
+            else if (request.indexOf("GET /toggle_logging") != -1) {
+                loggingEnabled = !loggingEnabled;  // Toggle the value
+                ast->setLoggingEnabled(loggingEnabled);   // Update the value in AutomaticSerialTransformer
+                client.println("HTTP/1.1 200 OK");
+                client.println("Content-Type: text/html");
+                client.println("Connection: close");
+                client.println();
+                client.println("<html><body>");
+                client.println("<h1>Logging " + String(loggingEnabled ? "Enabled" : "Disabled") + "</h1>");
+                client.println("<button onclick=\"window.history.back();\">Back</button>");
+                client.println("</body></html>");
+            }
+            // Returns JSON for sliders on webpage
+            else if (request.indexOf("GET /get_current_settings") != -1) {
+                client.println("HTTP/1.1 200 OK");
+                client.println("Content-Type: application/json");
+                client.println("Connection: close");
+                client.println();
+                client.print("{ \"prekladanie\": \"");
+                client.print(translationEnabled ? "enabled" : "disabled");
+                client.print("\", \"logovanie\": \"");
+                client.print(loggingEnabled ? "enabled" : "disabled");
+                client.print("\", \"mode\": \"");
+                client.print(selectedMode ? "auto" : "manual");
+                client.println("\" }");
+            }
             // Handle form submissions for RA and DEC
             else if (request.indexOf("GET /?ra=") != -1) {
               ra = getQueryParam(request, "ra").toFloat();  // Convert RA to double
@@ -136,17 +225,10 @@ public:
                 String web_line = "";
                 while (myfile.available()) {
                   char charakter = myfile.read();
-                  client.writeFully(charakter);
+                  client.print(charakter);
                   
                 }
                 myfile.close();
-              } else if (request.indexOf("GET /number_of_transformations") != -1) {
-                // Number of transformations action
-                client.println("HTTP/1.1 200 OK");
-                client.println("Content-Type: text/plain");
-                client.println("Connection: close");
-                client.println();
-                client.println(String(ast->getSpeedChanges()));
               } else {
                 client.println("<html><body><h1>File not found!</h1></body></html>");                
               }
@@ -157,7 +239,7 @@ public:
         }
       }
       client.stop();  // Stopping because we specified "Connection: close"
-      Serial2.println("client disconnected");
+      Serial.println("client disconnected");
     }
   }
 }
