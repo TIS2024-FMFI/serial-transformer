@@ -50,6 +50,10 @@ public:
     dec_transformed_distance = 0.0;
   }
 
+  int getSpeedChanges() {
+    return speed_changes;
+  }
+
   void setRaRatio(double ra) {
     ra_ratio = ra;
     logger->log("RA ratio set to " + String(ra));
