@@ -56,11 +56,15 @@ public:
 
   void setRaRatio(double ra) {
     ra_ratio = ra;
+    ra_original_distance = 0.0;
+    ra_transformed_distance = 0.0;
     logger->log("RA ratio set to " + String(ra));
     settings->setRaRatio(ra);
   }
   void setDecRatio(double dec) {
     dec_ratio = dec;
+    dec_original_distance = 0.0;
+    dec_transformed_distance = 0.0;
     logger->log("DEC ratio set to " + String(dec));
     settings->setDecRatio(dec);
   }
@@ -77,6 +81,18 @@ public:
         }
         Serial.println(message);
         Serial.println(output_message);
+        Serial.print("Original distance RA: ");
+        Serial.println(ra_original_distance);
+        Serial.print("Transformed distance RA: ");
+        Serial.println(ra_transformed_distance);
+        Serial.print("Seeked distance RA: ");
+        Serial.println(ra_original_distance * ra_ratio);
+        Serial.print("Original distance DEC: ");
+        Serial.println(dec_original_distance);
+        Serial.print("Transformed distance DEC: ");
+        Serial.println(dec_transformed_distance);
+        Serial.print("Seeked distance DEC: ");
+        Serial.println(dec_original_distance * dec_ratio);
         Serial3.println(output_message);
         message = "U";
       } else {
