@@ -13,6 +13,11 @@ public:
   Settings* settings;
   double ra_ratio = 1.0;
   double dec_ratio = 1.0;
+  double step = 0.005;
+  double camera_ra_ratio = 1.0;
+  double camera_dec_ratio = 1.0;
+  double constant_ra_ratio = 1.0;
+  double constant_dec_ratio = 1.0;
   int original_speed_ra = 15;
   int original_speed_dec = 15;
   int original_speed_ra_steps = 0;
@@ -29,10 +34,20 @@ public:
   double ra_transformed_distance = 0.0;
   double dec_transformed_distance = 0.0;
   AutomaticSerialTransformer(double ra, double dec, SerialLogger* ptr_logger, Settings* ptr_settings) {
+    constant_ra_ratio = ra;
+    constant_dec_ratio = dec;
     ra_ratio = ra;
     dec_ratio = dec;
+    camera_dec_ratio = dec;
+    camera_ra_ratio = ra;
     logger = ptr_logger;
     settings = ptr_settings;
+    ra_ratio = settings->getRaRatio();
+    dec_ratio = settings->getDecRatio();
+    constant_ra_ratio = ra_ratio;
+    constant_dec_ratio = dec_ratio;
+    camera_dec_ratio = dec_ratio;
+    camera_ra_ratio = ra_ratio;
   }
 
   void reset() {
@@ -62,13 +77,36 @@ public:
       errors[i] = errors[i + 1];
     }
     errors[19] = error;
+    int total_error = 0;
+    for (int i = 0; i < 20; i++) {
+      total_error += errors[i];
+    }
+    if (total_error > 0) {
+      ra_ratio = ra_ratio + step;
+      dec_ratio = dec_ratio + step;
+    } else if (total_error < 0) {
+      ra_ratio = ra_ratio - step;
+      dec_ratio = dec_ratio - step;
+    }
   }
 
   void setMode(bool mode) {
     useCameraErrors = mode;
+    if (mode) {
+      constant_ra_ratio = ra_ratio;
+      constant_dec_ratio = dec_ratio;
+      ra_ratio = camera_ra_ratio;
+      dec_ratio = camera_dec_ratio;
+    } else {
+      camera_dec_ratio = dec_ratio;
+      camera_ra_ratio = ra_ratio;
+      ra_ratio = constant_ra_ratio;
+      dec_ratio = constant_dec_ratio;
+    }
   }
 
   void setRaRatio(double ra) {
+    constant_ra_ratio = ra;
     ra_ratio = ra;
     ra_original_distance = 0.0;
     ra_transformed_distance = 0.0;
@@ -76,6 +114,7 @@ public:
     settings->setRaRatio(ra);
   }
   void setDecRatio(double dec) {
+    constant_dec_ratio = dec;
     dec_ratio = dec;
     dec_original_distance = 0.0;
     dec_transformed_distance = 0.0;
@@ -89,7 +128,7 @@ public:
       input = Serial2.read();
       if (input == 'U'){
         output_message = "";
-        for (int i=0; i<message.length(); i++){
+        for (unsigned int i=0; i<message.length(); i++){
           input = message[i];
           transformSerial();
         }
