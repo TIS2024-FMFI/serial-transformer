@@ -30,48 +30,48 @@ EthernetServer* server_ptr = &server;
 
 void setup() {
 
-  Serial2.begin(9600);
+  Serial.begin(9600);
   // Show whether a cable is plugged in or not.
   Ethernet.onLinkState([](bool state) {
-    Serial2.printf("[Ethernet] Link %s\n", state ? "ON" : "OFF");
+    Serial.printf("[Ethernet] Link %s\n", state ? "ON" : "OFF");
   });
 
   // Unlike the Arduino API (which you can still use), Ethernet uses
   // the Teensy's internal MAC address by default
   uint8_t mac[6];
   Ethernet.macAddress(mac);
-  Serial2.printf("MAC = %02x:%02x:%02x:%02x:%02x:%02x\n",
+  Serial.printf("MAC = %02x:%02x:%02x:%02x:%02x:%02x\n",
                  mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-  Serial2.println("Starting Ethernet with DHCP...");
+  Serial.println("Starting Ethernet with DHCP...");
   if (!Ethernet.begin()) {
-    Serial2.println("Failed to start Ethernet");
+    Serial.println("Failed to start Ethernet");
     return;
   }
   if (!Ethernet.waitForLocalIP(kDHCPTimeout)) {
-    Serial2.println("Failed to get IP address from DHCP");
+    Serial.println("Failed to get IP address from DHCP");
   } else {
     IPAddress ip = Ethernet.localIP();
-    Serial2.printf("    Local IP    = %u.%u.%u.%u\n", ip[0], ip[1], ip[2], ip[3]);
+    Serial.printf("    Local IP    = %u.%u.%u.%u\n", ip[0], ip[1], ip[2], ip[3]);
     ip = Ethernet.subnetMask();
-    Serial2.printf("    Subnet mask = %u.%u.%u.%u\n", ip[0], ip[1], ip[2], ip[3]);
+    Serial.printf("    Subnet mask = %u.%u.%u.%u\n", ip[0], ip[1], ip[2], ip[3]);
     ip = Ethernet.gatewayIP();
-    Serial2.printf("    Gateway     = %u.%u.%u.%u\n", ip[0], ip[1], ip[2], ip[3]);
+    Serial.printf("    Gateway     = %u.%u.%u.%u\n", ip[0], ip[1], ip[2], ip[3]);
     ip = Ethernet.dnsServerIP();
-    Serial2.printf("    DNS         = %u.%u.%u.%u\n", ip[0], ip[1], ip[2], ip[3]);
+    Serial.printf("    DNS         = %u.%u.%u.%u\n", ip[0], ip[1], ip[2], ip[3]);
 
     // Start the server
-    Serial2.printf("Listening for clients on port %u...\n", kServerPort);
+    Serial.printf("Listening for clients on port %u...\n", kServerPort);
     server.begin();
   }
   if (!SD.begin(BUILTIN_SDCARD)) {
-    Serial2.println("SD initialization failed!");
+    Serial.println("SD initialization failed!");
     while (1)
       ;
   }
 
 
-  Serial.begin(9600);
+  Serial2.begin(9600);
   Serial3.begin(9600);
 }
 

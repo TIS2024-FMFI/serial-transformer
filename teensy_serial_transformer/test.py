@@ -3,7 +3,7 @@ import time
 
 #connect to serial COM1 with baudrate 9600
 
-ser = serial.Serial('COM6', 9600)
+ser = Serial2.Serial('COM6', 9600)
 
 #send data to serial port
 ser.write(b'UFF018C')

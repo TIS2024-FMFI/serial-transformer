@@ -66,18 +66,33 @@ public:
   }
   void readSerial() {
     // Read serial data
-    if (Serial.available() > 0) {
+    if (Serial2.available() > 0) {
       // Read the incoming byte:
-      input = Serial.read();
+      input = Serial2.read();
+      if (input == 'U'){
+        output_message = "";
+        for (int i=0; i<message.length(); i++){
+          input = message[i];
+          transformSerial();
+        }
+        Serial.println(message);
+        Serial.println(output_message);
+        Serial3.println(output_message);
+        message = "U";
+      } else {
+        message = message + input;
+      }
 
-      transformSerial();
-      Serial2.println(input);
+      //transformSerial();
+      //Serial.println(input);
+      //Serial3.write(input);
     }
     if (Serial3.available() > 0) {
       // Read the incoming byte:
       input = Serial3.read();
-
-      Serial.write(input);
+      Serial.print("Answer: ");
+      Serial.println(input);
+      Serial2.write(input);
     }
   }
 private:
@@ -100,6 +115,8 @@ private:
   int int_data_length = 0;
 
   char input;
+  String message;
+  String output_message;
   char buffer[100];
 
   void setSpeedRa(int speed, int new_speed) {
@@ -142,21 +159,21 @@ private:
     if (state == 5 && input == 'U') {
       state = 0;
       writeSerial(input);
-      Serial2.println("State chnaged to 0");
+      Serial.println("State chnaged to 0");
       return;
     }
     if (state == 0) {
       module_address = String(input);
       state = 1;
       writeSerial(input);
-      Serial2.println("State chnaged to 1");
+      Serial.println("State chnaged to 1");
       return;
     }
     if (state == 1) {
       module_address += String(input);
       state = 2;
       writeSerial(input);
-      Serial2.println("State chnaged to 2");
+      Serial.println("State chnaged to 2");
       return;
     }
     if (state == 2 && data_length == "") {
@@ -177,15 +194,17 @@ private:
       }
       int_data_length = first_digit + second_digit * 16;
 
-      Serial2.println("Data length: " + data_length);
+      Serial.println("Data length: " + data_length);
       if (int_data_length == 0) {
         state = 4;
-        Serial2.println("State changed to 4");
+        Serial.println("State changed to 4");
       } else {
         state = 3;
-        Serial2.println("State changed to 3");
+        Serial.println("State changed to 3");
       }
-      writeSerial(input);
+      for (int i = 0; i < 2; i++) {
+        writeSerial(data_length[i]);
+      }
       return;
     }
     if (state == 3) {
@@ -194,7 +213,7 @@ private:
         if (data.length() == 2) {
           char b = data[0];
           if (b >= 56) {
-            Serial2.println("First bit is 1");
+            Serial.println("First bit is 1");
             int requested_speed;
             //set the requested speed to the value of the last 4 bits
             requested_speed = data[1];
@@ -299,7 +318,7 @@ private:
 
           int time_high = (data[4] << 12) | (data[5] << 8) | (data[6] << 4) | data[7];
           int time_low = (data[8] << 12) | (data[9] << 8) | (data[10] << 4) | data[11];
-          Serial2.println("Time high: " + String(time_high) + " Time low: " + String(time_low) + " Speed high: " + String(requested_speed1) + " Speed low: " + String(requested_speed2));
+          Serial.println("Time high: " + String(time_high) + " Time low: " + String(time_low) + " Speed high: " + String(requested_speed1) + " Speed low: " + String(requested_speed2));
 
           int new_time_high = time_high;
           int new_time_low = time_low;
@@ -377,14 +396,14 @@ private:
           }
         }
         state = 4;
-        Serial2.println("State chnaged to 4");
+        Serial.println("State chnaged to 4");
         return;
       }
     }
     if (state == 4 && checksum == "") {
       checksum = String(input);
       //writeSerial(input);
-      Serial2.println("State chnaged to 4");
+      Serial.println("State chnaged to 4");
       return;
     }
     if (state == 4 && checksum != "") {
@@ -418,12 +437,14 @@ private:
       end_of_message = "";
       int_data_length = 0;
 
-      Serial2.println("State chnaged to 5");
+      Serial.println("State chnaged to 5");
       //writeSerial(input);
     }
   }
   void writeSerial(char input) {
     // Write serial data
-    Serial3.write(input);
+    //Serial.println(input);
+    //Serial3.write(input);
+    output_message = output_message + input;
   }
 };
