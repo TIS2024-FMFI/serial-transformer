@@ -41,12 +41,12 @@ public:
     EthernetClient client = server->available();
     if (client) {
       String request = "";
-      Serial2.println("new client");
+      Serial.println("new client");
       // an http request ends with a blank line
       while (client.connected()) {
         if (client.available()) {
           char c = client.read();
-          //Serial2.println(c);
+          //Serial.println(c);
           request += c;
           // if you've gotten to the end of the line (received a newline
           // character) and the line is blank, the http request has ended,
@@ -64,7 +64,7 @@ public:
               String logs = logger->read_logs(0);
               //go thorgh every char in logs and send it to client
               for (u_int i = 0; i < logs.length(); i++) {
-                client.writeFully(logs[i]);
+                client.print(logs[i]);
               }
               client.println("</pre>");
               client.println("<button onclick=\"window.history.back();\">Back</button>");
@@ -89,11 +89,11 @@ public:
               String logs = logger->read_logs(0);
               //go thorgh every char in logs and send it to client
               for (u_int i = 0; i < logs.length(); i++) {
-                client.writeFully(logs[i]);
+                client.print(logs[i]);
               }
             } else if (request.indexOf("GET /reset_accumulators") != -1) {
               // Reset accumulators action
-              ast->reset();  // Reset the accumulator
+              accumulator = 0;  // Reset the accumulator
               client.println("HTTP/1.1 200 OK");
               client.println("Content-Type: text/html");
               client.println("Connection: close");
@@ -136,7 +136,7 @@ public:
                 String web_line = "";
                 while (myfile.available()) {
                   char charakter = myfile.read();
-                  client.writeFully(charakter);
+                  client.print(charakter);
                   
                 }
                 myfile.close();
@@ -150,7 +150,7 @@ public:
         }
       }
       client.stop();  // Stopping because we specified "Connection: close"
-      Serial2.println("client disconnected");
+      Serial.println("client disconnected");
     }
   }
 }
