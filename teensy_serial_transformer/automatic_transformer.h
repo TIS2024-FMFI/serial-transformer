@@ -73,6 +73,12 @@ public:
       transformSerial();
       Serial2.println(input);
     }
+    if (Serial3.available() > 0) {
+      // Read the incoming byte:
+      input = Serial3.read();
+
+      Serial.write(input);
+    }
   }
 private:
   //state

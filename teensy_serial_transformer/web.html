@@ -269,7 +269,7 @@ button {
     <div class="stats">
         <div class="stat-item">
             <span class="stat-label">Zmenená rýchlosť</span>
-            <span class="stat-value">0</span>
+            <span id="count_changed" class="stat-value">0</span>
         </div>
         <div class="stat-item">
             <span class="stat-label">Pozdržané</span>
@@ -315,6 +315,15 @@ button {
 
     <!-- JavaScript na obsluhu tlačidiel (fetch) a módu (auto/manual) -->
     <script>
+        //every 5 seconds ask for number_of_transformations and put the value into span with id count_changed
+        setInterval(() => {
+            fetch("/number_of_transformations")
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("count_changed").textContent = data.count_changed;
+                });
+        }, 5000);
+
         // 1) HANDLER PRE REŽIM
         function handleModeChange() {
             const mode = document.getElementById("modeSelect").value;

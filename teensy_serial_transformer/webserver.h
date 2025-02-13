@@ -140,6 +140,13 @@ public:
                   
                 }
                 myfile.close();
+              } else if (request.indexOf("GET /number_of_transformations") != -1) {
+                // Number of transformations action
+                client.println("HTTP/1.1 200 OK");
+                client.println("Content-Type: text/plain");
+                client.println("Connection: close");
+                client.println();
+                client.println(String(ast->getSpeedChanges()));
               } else {
                 client.println("<html><body><h1>File not found!</h1></body></html>");                
               }
