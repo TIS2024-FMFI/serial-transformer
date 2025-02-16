@@ -41,12 +41,12 @@ public:
     EthernetClient client = server->available();
     if (client) {
       String request = "";
-      Serial.println("new client");
+      Serial2.println("new client");
       // an http request ends with a blank line
       while (client.connected()) {
         if (client.available()) {
           char c = client.read();
-          //Serial.println(c);
+          //Serial2.println(c);
           request += c;
           // if you've gotten to the end of the line (received a newline
           // character) and the line is blank, the http request has ended,
@@ -136,10 +136,17 @@ public:
                 String web_line = "";
                 while (myfile.available()) {
                   char charakter = myfile.read();
-                  client.print(charakter);
+                  client.writeFully(charakter);
                   
                 }
                 myfile.close();
+              } else if (request.indexOf("GET /number_of_transformations") != -1) {
+                // Number of transformations action
+                client.println("HTTP/1.1 200 OK");
+                client.println("Content-Type: text/plain");
+                client.println("Connection: close");
+                client.println();
+                client.println(String(ast->getSpeedChanges()));
               } else {
                 client.println("<html><body><h1>File not found!</h1></body></html>");                
               }
@@ -150,7 +157,7 @@ public:
         }
       }
       client.stop();  // Stopping because we specified "Connection: close"
-      Serial.println("client disconnected");
+      Serial2.println("client disconnected");
     }
   }
 }

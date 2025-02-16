@@ -17,7 +17,7 @@ private:
       }
       configFile.close();
     } else {
-      Serial2.println("No config file found yet");
+      Serial.println("No config file found yet");
     }
   }
 
@@ -29,7 +29,7 @@ private:
       configFile.println(String(ra_ratio));
       configFile.println(String(dec_ratio));
     } else {
-      Serial2.println("Error opening file to write config");
+      Serial.println("Error opening file to write config");
     }
   }
 public:
