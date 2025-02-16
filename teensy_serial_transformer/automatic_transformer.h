@@ -200,6 +200,10 @@ private:
     struct tm tm = *localtime(&t);
     int new_last_ra_transformed = tm.tm_hour * 3600 + tm.tm_min * 60 + tm.tm_sec;
     int time_diff = new_last_ra_transformed - last_ra_transformed;
+    Serial.print("Original ra steps: ");
+    Serial.println(original_speed_ra_steps);
+    Serial.print("Transformed ra steps: ");
+    Serial.println(transformed_speed_ra_steps);
     ra_original_distance += original_speed_ra_steps * time_diff;
     ra_transformed_distance += transformed_speed_ra_steps * time_diff;
     last_ra_transformed = new_last_ra_transformed;
@@ -317,6 +321,9 @@ private:
                   new_speed = 3;
                 };
               }
+              if (ra_ratio==1.0){
+                new_speed = requested_speed;
+              }
             }
             if (module_address == "35") {
               if (dec_transformed_distance <= dec_original_distance * dec_ratio) {
@@ -343,6 +350,9 @@ private:
                 } else {
                   new_speed = 3;
                 };
+              }
+              if (dec_ratio==1.0){
+                new_speed = requested_speed;
               }
             }
             //set 4 last bits to new speed
