@@ -1,2 +1,2 @@
 # serial-transformer
-Transforms, filters and monitors packets on serial port
+Systém určený na transformáciu a logovanie sériovej komunikácie medzi riadiacim počítačom a motorovým kontrolérom teleskopu FMFI UK. Jeho cieľom je dynamicky upravovať rýchlosť krokových motorov (pre osy RA a DEC) s cieľom kompenzovať degradáciu hardvéru teleskopu, čím sa zabezpečí presnejšie sledovanie nočnej oblohy. Systém podporuje manuálny režim (ovládaný cez grafické rozhranie) aj automatický režim, ktorý využíva údaje z autoguider kamery. Okrem toho umožňuje logovanie komunikácie a flexibilnú integráciu rôznych transformačných modulov, vrátane univerzálneho modulu založeného na pravidlách s regulárnymi výrazmi.
